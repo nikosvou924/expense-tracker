@@ -1,6 +1,9 @@
 from __future__ import annotations
 from typing import List, Dict, Any
 
+import json
+from pathlib import Path
+
 
 def print_menu() -> None:
     print("\n=== Expense Tracker ===")
@@ -42,6 +45,7 @@ def add_expense(expenses: List[Dict[str, Any]]) -> None:
 
     expense = {"amount": amount, "category": category, "note": note}
     expenses.append(expense)
+    save_expenses(expenses)
 
     print(f"Saved: €{amount:.2f} in '{category}'" + (f" ({note})" if note else ""))
 
@@ -97,8 +101,32 @@ def list_expenses(expenses: List[Dict[str, Any]]) -> None:
             print(f"{i:>3}) €{amount:>7.2f}  [{category}]")
 
 
+DATA_FILE = Path("expenses.json")
+
+def load_expenses() -> list[dict]:
+    if not DATA_FILE.exists():
+        return []
+
+    try:
+        with DATA_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return data
+    except (json.JSONDecodeError, OSError):
+        pass
+
+    return []
+
+
+def save_expenses(expenses: list[dict]) -> None:
+    with DATA_FILE.open("w", encoding="utf-8") as f:
+        json.dump(expenses, f, ensure_ascii=False, indent=2)
+
+
+
+
 def main() -> None:
-    expenses: List[Dict[str, Any]] = []
+    expenses: List[Dict[str, Any]] = load_expenses()
 
     while True:
         print_menu()
